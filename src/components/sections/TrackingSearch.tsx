@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  AlertCircle, CheckCircle2, Circle, Loader2, MapPin, Package, Phone, RefreshCw, Search, Truck, User, Warehouse,
+  CheckCircle2, Circle, Loader2, MapPin, Package, Phone, RefreshCw, Search, Truck, User, Warehouse,
 } from "lucide-react";
-import { dispatchSupabase, type TrackedShipment } from "@/lib/supabase-dispatch";
+import { findDemoShipment, DEMO_TRACKING_NUMBERS, type TrackedShipment } from "@/lib/demo-data";
 
 const TIMELINE_STEPS = [
   { status: "CREATED", label: "Order Confirmed" },
@@ -38,42 +38,23 @@ function reachedIndexFor(shipment: TrackedShipment) {
 export function TrackingSearch() {
   const [query, setQuery] = useState("");
   const [shipment, setShipment] = useState<TrackedShipment | null>(null);
-  const [serviceError, setServiceError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const runSearch = async (q: string) => {
     if (!q.trim()) return;
     setLoading(true);
-    const { data, error } = await dispatchSupabase.rpc("track_shipment", { p_query: q.trim() });
+    // Brief delay so the loading state is perceptible rather than flashing.
+    await new Promise((resolve) => setTimeout(resolve, 350));
     setLoading(false);
     setSearched(true);
-    if (error) {
-      setServiceError(true);
-      setShipment(null);
-      return;
-    }
-    setServiceError(false);
-    setShipment(data as TrackedShipment);
+    setShipment(findDemoShipment(q));
   };
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     runSearch(query);
   };
-
-  // Poll every 15s while a result is showing, so status updates without a refresh
-  useEffect(() => {
-    if (pollRef.current) clearInterval(pollRef.current);
-    if (shipment?.found && !serviceError && query) {
-      pollRef.current = setInterval(() => runSearch(query), 15000);
-    }
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shipment?.found, serviceError]);
 
   const isRTO = shipment?.status ? RTO_STATUSES.includes(shipment.status) : false;
   const activeIndex = shipment?.found ? reachedIndexFor(shipment) : 0;
@@ -100,27 +81,35 @@ export function TrackingSearch() {
         </button>
       </form>
 
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
+        <span>Try a sample:</span>
+        {DEMO_TRACKING_NUMBERS.map((tn) => (
+          <button
+            key={tn}
+            type="button"
+            onClick={() => {
+              setQuery(tn);
+              runSearch(tn);
+            }}
+            data-cursor-hover
+            className="rounded-full border border-border px-2.5 py-1 font-mono text-[11px] transition-colors hover:border-primary/50 hover:text-primary"
+          >
+            {tn}
+          </button>
+        ))}
+      </div>
+
       <AnimatePresence mode="wait">
         {searched && !loading && (
           <motion.div
-            key={serviceError ? "error" : shipment?.found ? shipment.tracking_number : "not-found"}
+            key={shipment?.found ? shipment.tracking_number : "not-found"}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
             className="mt-8"
           >
-            {serviceError ? (
-              <div className="glass rounded-2xl p-8 text-center">
-                <AlertCircle className="mx-auto text-primary" size={32} />
-                <p className="font-display mt-4 text-lg font-semibold">Tracking is temporarily unavailable</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  We couldn&apos;t reach our tracking system just now. Please try again in a few
-                  minutes, or call us on {" "}
-                  <a href="tel:+918597891638" className="text-primary">+91 85978 91638</a>.
-                </p>
-              </div>
-            ) : !shipment?.found ? (
+            {!shipment?.found ? (
               <div className="glass rounded-2xl p-8 text-center">
                 <Package className="mx-auto text-muted-foreground" size={32} />
                 <p className="font-display mt-4 text-lg font-semibold">No shipment found</p>
@@ -208,8 +197,7 @@ export function TrackingSearch() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between border-t border-border px-6 py-3 text-[11px] text-muted-foreground">
-                  <span>Auto-refreshing every 15s</span>
+                <div className="flex items-center justify-end border-t border-border px-6 py-3 text-[11px] text-muted-foreground">
                   <span>
                     {shipment.updated_at && `Last updated ${new Date(shipment.updated_at).toLocaleTimeString("en-IN")}`}
                   </span>

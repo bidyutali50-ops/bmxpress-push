@@ -6,16 +6,6 @@ No new Supabase project is needed. Both existing projects are already fully conf
 
 ---
 
-## ⚠️ Before you start: wake up the dispatch database
-
-The **BMX Dispatch** project (`azcuzqpmfobseskstteo`) appears to be **paused**. Supabase auto-pauses free-tier projects after about a week of inactivity.
-
-If it stays paused, the site still works fine — but the live counter shows "Offline" and shipment tracking says it's temporarily unavailable.
-
-**To fix:** go to [supabase.com/dashboard](https://supabase.com/dashboard), open the BMX Dispatch project, and click **Restore** / **Resume**. It takes a couple of minutes.
-
----
-
 ## Step 1 — Create a fresh GitHub repo
 
 1. Go to [github.com/new](https://github.com/new)
@@ -60,7 +50,7 @@ Open your repo on github.com. You should see a **`src` folder**, not a flat pile
 2. Import your new GitHub repo
 3. Vercel auto-detects Next.js — leave Framework Preset, Build Command, and Output Directory at their defaults
 4. Leave **Root Directory** as `./`
-5. **Before clicking Deploy**, expand **Environment Variables** and add all four below
+5. **Before clicking Deploy**, expand **Environment Variables** and add the ones below
 
 ---
 
@@ -68,7 +58,7 @@ Open your repo on github.com. You should see a **`src` folder**, not a flat pile
 
 Add these to Vercel (and to a local `.env.local` if you're running `npm run dev`).
 
-All four are `NEXT_PUBLIC_*` and safe to expose publicly — they're anon keys, and access is controlled entirely by row-level-security policies on the database side.
+Both are `NEXT_PUBLIC_*` and safe to expose publicly — they're anon keys, and access is controlled entirely by row-level-security policies on the database side.
 
 ### Marketing site database — contact form, partner applications, admin login
 
@@ -78,16 +68,6 @@ NEXT_PUBLIC_SUPABASE_URL=https://aamofkqdmqtpnqdxximh.supabase.co
 
 ```
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFhbW9ma3FkbXF0cG5xZHh4aW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NDIzNzcsImV4cCI6MjA5ODIxODM3N30.bm3e0tieHgO5eD4pXywVt1H1geVHuhQj3e_k0AKkKMg
-```
-
-### BMX Dispatch database — live counter and shipment tracking (read-only)
-
-```
-NEXT_PUBLIC_DISPATCH_SUPABASE_URL=https://azcuzqpmfobseskstteo.supabase.co
-```
-
-```
-NEXT_PUBLIC_DISPATCH_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6Y3V6cXBtZm9ic2Vza3N0dGVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4OTk1OTcsImV4cCI6MjA5ODQ3NTU5N30.Cxlcs846GpY-x_CSD69sFGDhU1WeU_hLfkYuOAlXo88
 ```
 
 ### Optional — Google Search Console verification
@@ -119,8 +99,8 @@ Open your live site and confirm:
 
 - [ ] Background is **white**, text is **black**, cards have a frosted **glass** effect
 - [ ] Homepage loads with the 3D globe in the hero
-- [ ] **Live counter** shows real numbers (if it says "Offline", the dispatch DB is still paused — see the warning at the top)
-- [ ] `/track` — search a real tracking number (e.g. one from your dispatch DB) and confirm the timeline appears
+- [ ] **Live counter** shows animated figures that tick over
+- [ ] `/track` — click a sample tracking number (e.g. `BMX100000001`) and confirm the timeline appears
 - [ ] `/apply` — submit a test partner application, then confirm the row appears in Supabase → `delivery_partner_applications`
 - [ ] Contact form on the homepage — submit a test, confirm it lands in `contact_submissions`
 - [ ] `/admin` — sign in and see both submissions
@@ -128,23 +108,37 @@ Open your live site and confirm:
 
 ---
 
-## What's already configured in Supabase (nothing to redo)
+## What's configured in Supabase (nothing to redo)
 
 **BMX RIDER PANEL** (`aamofkqdmqtpnqdxximh`)
 - `contact_submissions` table + RLS (anyone can insert, only signed-in can read)
 - `delivery_partner_applications` table + RLS (same pattern)
 - `partner-documents` private storage bucket (public upload, authenticated-only read)
 
-**BMX Dispatch** (`azcuzqpmfobseskstteo`)
-- `public_live_stats` aggregate table, Realtime-enabled, readable by anon (no PII)
-- `track_shipment()` function — returns one order's customer-safe fields by exact tracking number or phone match
-- Every other table (`orders`, `riders`, `cod_ledger`, etc.) is **hard-blocked** from the anon key at the database permission level
+The contact form, delivery partner application and admin dashboard all write to
+and read from this project. They are fully real.
+
+---
+
+## Demo data
+
+The **live counter** and **shipment tracking page** currently run on local demo
+data (`src/lib/demo-data.ts`) rather than querying a live operational database.
+
+- Counter figures are derived from the time of day, so they ramp through the
+  day and reset at midnight instead of being random noise.
+- Tracking works against four sample shipments (`BMX100000001`–`BMX100000004`),
+  covering in-transit, delivered, RTO and just-assigned states.
+
+To wire these back to real orders later, edit `src/lib/demo-data.ts` — the
+exported types (`LiveStats`, `TrackedShipment`) match the shape a real backend
+should return, so only the two data functions need replacing.
 
 ---
 
 ## Known limitations
 
+- **Live counter and tracking show demo data**, not real orders. See above.
 - **Live map with rider GPS** is not built — it needs a Google Maps API key on your own billing account.
 - **Admin panel is basic** (view leads + applications). Role-based access, CMS for logos/testimonials/blog, and analytics are not built yet.
 - **Client logos are text wordmarks.** Drop real logo files into `public/logos/` and add a `src` to each entry in `src/lib/data.ts` — but only use logos you have permission to display.
-- **Live counter numbers will be small** — the dispatch DB currently holds a handful of test orders and riders. They'll grow as real usage does. This is the honest tradeoff of showing real data instead of invented numbers.

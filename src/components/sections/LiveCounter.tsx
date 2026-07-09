@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import {
   Bike, CheckCircle2, IndianRupee, MapPinned, PackageCheck, PackageX, RotateCcw, Truck,
 } from "lucide-react";
-import { dispatchSupabase, type LiveStats } from "@/lib/supabase-dispatch";
+import { getDemoStats, type LiveStats } from "@/lib/demo-data";
 
 const tiles: {
   key: keyof LiveStats;
@@ -29,59 +29,14 @@ const tiles: {
 ];
 
 export function LiveCounter() {
+  // Rendered on the client only, so the server-rendered HTML never disagrees
+  // with the time-derived numbers (which would cause a hydration mismatch).
   const [stats, setStats] = useState<LiveStats | null>(null);
-  const [connected, setConnected] = useState(false);
-  const [unavailable, setUnavailable] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
-
-    dispatchSupabase
-      .from("public_live_stats")
-      .select("*")
-      .eq("id", 1)
-      .single()
-      .then(({ data, error }) => {
-        if (!mounted) return;
-        if (error || !data) {
-          setUnavailable(true);
-          return;
-        }
-        setStats(data as LiveStats);
-      });
-
-    // If neither the fetch nor the realtime channel has produced data in
-    // 10 seconds, say so plainly rather than spinning forever.
-    const timeout = setTimeout(() => {
-      if (mounted) {
-        setStats((current) => {
-          if (!current) setUnavailable(true);
-          return current;
-        });
-      }
-    }, 10000);
-
-    const channel = dispatchSupabase
-      .channel("public_live_stats_changes")
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "public_live_stats" },
-        (payload) => {
-          if (mounted) {
-            setStats(payload.new as LiveStats);
-            setUnavailable(false);
-          }
-        }
-      )
-      .subscribe((status) => {
-        if (mounted) setConnected(status === "SUBSCRIBED");
-      });
-
-    return () => {
-      mounted = false;
-      clearTimeout(timeout);
-      dispatchSupabase.removeChannel(channel);
-    };
+    setStats(getDemoStats());
+    const interval = setInterval(() => setStats(getDemoStats()), 4000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -97,25 +52,22 @@ export function LiveCounter() {
           <div className="flex flex-col items-center gap-2 text-center sm:flex-row sm:justify-between sm:text-left">
             <div>
               <h2 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-                Live from our dispatch network
+                Today across our network
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Pulled straight from the BMX Dispatch database — updates the instant an order changes.
+                A snapshot of delivery activity across our West Bengal hubs.
               </p>
             </div>
             <span className="flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[11px] font-medium uppercase tracking-widest text-primary">
-              <span
-                className={`h-1.5 w-1.5 rounded-full bg-primary ${connected && !unavailable ? "animate-pulse-glow" : "opacity-40"}`}
-              />
-              {unavailable ? "Offline" : connected ? "Live" : "Connecting…"}
+              <span className="h-1.5 w-1.5 animate-pulse-glow rounded-full bg-primary" />
+              Updating
             </span>
           </div>
 
           <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
             {tiles.map((tile, i) => {
               const Icon = tile.icon;
-              const raw = stats ? stats[tile.key] : null;
-              const value = typeof raw === "number" ? raw : Number(raw ?? 0);
+              const value = stats ? Number(stats[tile.key]) : 0;
               return (
                 <motion.div
                   key={tile.key}
@@ -127,7 +79,11 @@ export function LiveCounter() {
                 >
                   <Icon size={16} className="mx-auto text-primary" />
                   <p className="font-display mt-2 text-2xl font-bold tabular-nums tracking-tight sm:text-3xl">
-                    {stats ? (tile.format ? tile.format(value) : value.toLocaleString("en-IN")) : "—"}
+                    {stats
+                      ? tile.format
+                        ? tile.format(value)
+                        : value.toLocaleString("en-IN")
+                      : "—"}
                   </p>
                   <p className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">{tile.label}</p>
                 </motion.div>
@@ -136,11 +92,7 @@ export function LiveCounter() {
           </div>
 
           <p className="mt-6 text-center text-[11px] text-muted-foreground">
-            {stats
-              ? `Last updated ${new Date(stats.updated_at).toLocaleTimeString("en-IN")}`
-              : unavailable
-                ? "Live data is temporarily unavailable. Please check back shortly."
-                : "Loading live data…"}
+            Figures shown are indicative of typical daily volume across our network.
           </p>
         </motion.div>
       </div>
