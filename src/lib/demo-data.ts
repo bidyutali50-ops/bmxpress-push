@@ -1,88 +1,14 @@
 /**
- * Demo data for the marketing site.
+ * Demo data for the shipment tracking page.
  *
- * The live counter and shipment tracking page run on this module instead of
- * querying the operational dispatch database. Swap `USE_DEMO_DATA` to false
- * (and restore the dispatch client) when you want to wire these back to real
- * orders.
+ * Tracking runs on these sample shipments instead of querying an operational
+ * database. The exported `TrackedShipment` type matches the shape a real
+ * backend should return, so wiring this to live orders later means replacing
+ * `findDemoShipment` and nothing else.
  *
  * Nothing here touches Supabase. The contact form, delivery partner
  * application and admin dashboard remain backed by real Supabase tables.
  */
-
-export const USE_DEMO_DATA = true;
-
-/* ------------------------------------------------------------------ */
-/* Live counter                                                        */
-/* ------------------------------------------------------------------ */
-
-export type LiveStats = {
-  deliveries_today: number;
-  picked_today: number;
-  delivered_today: number;
-  failed_today: number;
-  returned_today: number;
-  cod_collected_today: number;
-  orders_in_transit: number;
-  riders_online: number;
-  riders_offline: number;
-  active_riders_total: number;
-  cities_covered: number;
-  updated_at: string;
-};
-
-const DAILY_TARGET = 3200;
-const TOTAL_RIDERS = 500;
-
-/**
- * Derives a plausible "so far today" figure from the current time of day,
- * so the numbers are consistent for everyone viewing the page at the same
- * moment and reset naturally at midnight (rather than being random noise).
- */
-export function getDemoStats(): LiveStats {
-  const now = new Date();
-  const startOfDay = new Date(now);
-  startOfDay.setHours(0, 0, 0, 0);
-
-  const fractionOfDay = Math.min(
-    1,
-    (now.getTime() - startOfDay.getTime()) / (24 * 60 * 60 * 1000)
-  );
-
-  // Deliveries ramp through the day rather than accruing linearly:
-  // quiet overnight, busiest late morning through evening.
-  const eased = Math.sin((fractionOfDay * Math.PI) / 2);
-
-  const delivered = Math.max(4, Math.round(DAILY_TARGET * eased));
-  const inTransit = Math.round(Math.max(8, delivered * 0.06));
-  const picked = delivered + inTransit;
-  const created = picked + Math.round(inTransit * 0.4);
-  const failed = Math.round(delivered * 0.008);
-  const returned = Math.round(delivered * 0.004);
-
-  // Rider availability also tracks time of day.
-  const onlineRatio = 0.35 + 0.5 * eased;
-  const ridersOnline = Math.round(TOTAL_RIDERS * Math.min(0.88, onlineRatio));
-
-  return {
-    deliveries_today: created,
-    picked_today: picked,
-    delivered_today: delivered,
-    failed_today: failed,
-    returned_today: returned,
-    cod_collected_today: delivered * 412,
-    orders_in_transit: inTransit,
-    riders_online: ridersOnline,
-    riders_offline: TOTAL_RIDERS - ridersOnline,
-    active_riders_total: TOTAL_RIDERS,
-    cities_covered: 30,
-    updated_at: now.toISOString(),
-  };
-}
-
-/* ------------------------------------------------------------------ */
-/* Shipment tracking                                                   */
-/* ------------------------------------------------------------------ */
 
 export type TrackedShipment = {
   found: boolean;

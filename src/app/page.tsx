@@ -1,5 +1,4 @@
 import { Hero } from "@/components/sections/Hero";
-import { LiveCounter } from "@/components/sections/LiveCounter";
 import { TrustedBy } from "@/components/sections/TrustedBy";
 import { Services } from "@/components/sections/Services";
 import { DeliveryProcess } from "@/components/sections/DeliveryProcess";
@@ -16,7 +15,6 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <LiveCounter />
       <TrustedBy />
       <Services />
       <DeliveryProcess />
