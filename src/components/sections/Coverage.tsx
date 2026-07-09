@@ -61,7 +61,7 @@ export function Coverage() {
                     cx={hub.x}
                     cy={hub.y}
                     r={hub.tier === "primary" ? 2.6 : 1.8}
-                    fill={hub.tier === "primary" ? "#E30613" : "#111111"}
+                    fill={hub.tier === "primary" ? "#E30613" : "#2563EB"}
                     initial={{ scale: 0, opacity: 0 }}
                     whileInView={{ scale: 1, opacity: 1 }}
                     viewport={{ once: true }}

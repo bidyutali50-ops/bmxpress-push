@@ -74,8 +74,8 @@ body {
   background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.65));
   backdrop-filter: blur(20px) saturate(140%);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
-  border: 1px solid rgba(227,6,19,0.12);
-  box-shadow: 0 4px 24px -8px rgba(227,6,19,0.15);
+  border: 1px solid rgba(14,23,48,0.08);
+  box-shadow: 0 4px 24px -12px rgba(14,23,48,0.18);
 }
 
 .dark .glass {
@@ -86,19 +86,19 @@ body {
 
 /* Glow utilities */
 .glow-red {
-  box-shadow: 0 0 0 1px rgba(227,6,19,0.15), 0 8px 40px -8px rgba(227,6,19,0.35);
+  box-shadow: 0 0 0 1px rgba(14,23,48,0.06), 0 18px 50px -20px rgba(14,23,48,0.28);
 }
 
 .text-glow {
-  text-shadow: 0 0 30px rgba(227,6,19,0.35);
+  text-shadow: 0 0 34px rgba(227,6,19,0.28);
 }
 
 /* Animated gradient mesh background — soft red glow wash on white */
 .mesh-bg {
   background-image:
-    radial-gradient(at 20% 10%, rgba(255,77,94,0.20) 0px, transparent 50%),
-    radial-gradient(at 80% 0%, rgba(255,154,162,0.16) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, rgba(227,6,19,0.14) 0px, transparent 50%);
+    radial-gradient(at 18% 8%, rgba(37,99,235,0.13) 0px, transparent 45%),
+    radial-gradient(at 82% 4%, rgba(227,6,19,0.10) 0px, transparent 45%),
+    radial-gradient(at 50% 100%, rgba(14,23,48,0.06) 0px, transparent 55%);
 }
 
 /* Noise / grain overlay */

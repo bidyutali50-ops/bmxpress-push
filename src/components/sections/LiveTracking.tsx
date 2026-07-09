@@ -104,8 +104,9 @@ export function LiveTracking() {
               <circle cx="560" cy="160" r="6" fill="#E30613" />
 
               <g ref={markerRef}>
-                <circle r="12" fill="#E30613" opacity="0.25" />
-                <circle r="7" fill="#E30613" />
+                <circle r="13" fill="#2563EB" opacity="0.2" />
+                <circle r="7" fill="#2563EB" />
+                <circle r="2.5" fill="#ffffff" />
               </g>
             </svg>
 

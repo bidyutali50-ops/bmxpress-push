@@ -2,13 +2,17 @@
 
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Line, Sphere } from "@react-three/drei";
+import { Line } from "@react-three/drei";
 import * as THREE from "three";
 
 const RADIUS = 2.2;
 
-// Fibonacci sphere distribution — even, dotted "data globe" look without
-// needing an external continent texture.
+const INK = "#0E1730";      // navy sphere body
+const RED = "#E30613";      // delivery routes
+const BLUE = "#2563EB";     // hub nodes
+const SKY = "#7DA6FF";      // surface dots / graticule
+
+/** Evenly distributed points on a sphere — the "data globe" surface. */
 function fibonacciSphere(count: number, radius: number) {
   const points: THREE.Vector3[] = [];
   const phi = Math.PI * (3 - Math.sqrt(5));
@@ -16,22 +20,12 @@ function fibonacciSphere(count: number, radius: number) {
     const y = 1 - (i / (count - 1)) * 2;
     const r = Math.sqrt(1 - y * y);
     const theta = phi * i;
-    const x = Math.cos(theta) * r;
-    const z = Math.sin(theta) * r;
-    points.push(new THREE.Vector3(x * radius, y * radius, z * radius));
+    points.push(
+      new THREE.Vector3(Math.cos(theta) * r * radius, y * radius, Math.sin(theta) * r * radius)
+    );
   }
   return points;
 }
-
-// A handful of hub locations (approximate lat/lon over India + a few global
-// anchors) converted to sphere coordinates, used for glowing pins and arcs.
-const HUBS = [
-  { lat: 23.6, lon: 88.0 }, // West Bengal
-  { lat: 28.6, lon: 77.2 }, // Delhi
-  { lat: 19.1, lon: 72.9 }, // Mumbai
-  { lat: 13.1, lon: 80.3 }, // Chennai
-  { lat: 12.9, lon: 77.6 }, // Bengaluru
-];
 
 function latLonToVector3(lat: number, lon: number, radius: number) {
   const phi = (90 - lat) * (Math.PI / 180);
@@ -43,88 +37,153 @@ function latLonToVector3(lat: number, lon: number, radius: number) {
   );
 }
 
-function greatCircleArc(a: THREE.Vector3, b: THREE.Vector3, radius: number, segments = 48) {
+/** Lifted great-circle arc between two surface points. */
+function arcBetween(a: THREE.Vector3, b: THREE.Vector3, radius: number, segments = 64) {
   const points: THREE.Vector3[] = [];
   for (let i = 0; i <= segments; i++) {
     const t = i / segments;
-    const point = new THREE.Vector3().lerpVectors(a, b, t);
-    point.normalize().multiplyScalar(radius * (1 + Math.sin(Math.PI * t) * 0.18));
-    points.push(point);
+    const p = new THREE.Vector3().lerpVectors(a, b, t);
+    p.normalize().multiplyScalar(radius * (1 + Math.sin(Math.PI * t) * 0.16));
+    points.push(p);
   }
   return points;
 }
 
-function DottedGlobe() {
-  const points = useMemo(() => fibonacciSphere(1400, RADIUS), []);
-  const geometry = useMemo(() => new THREE.BufferGeometry().setFromPoints(points), [points]);
+// Origin is West Bengal; spokes reach the metros BM Xpress connects onward to.
+const ORIGIN = { lat: 23.6, lon: 88.0 };
+const SPOKES = [
+  { lat: 28.6, lon: 77.2 },
+  { lat: 19.1, lon: 72.9 },
+  { lat: 13.1, lon: 80.3 },
+  { lat: 12.9, lon: 77.6 },
+  { lat: 26.1, lon: 91.7 },
+];
 
+/** Blue pinpricks across the navy surface. Back-face dots are hidden by the sphere. */
+function SurfaceDots() {
+  const geometry = useMemo(
+    () => new THREE.BufferGeometry().setFromPoints(fibonacciSphere(1600, RADIUS + 0.005)),
+    []
+  );
   return (
     <points geometry={geometry}>
-      <pointsMaterial size={0.022} color="#FF4D5E" sizeAttenuation transparent opacity={0.55} />
+      <pointsMaterial size={0.021} color={SKY} sizeAttenuation transparent opacity={0.5} depthWrite={false} />
     </points>
   );
 }
 
+/** Faint latitude/longitude wireframe — reads as a survey grid, not decoration. */
+function Graticule() {
+  return (
+    <mesh>
+      <sphereGeometry args={[RADIUS + 0.008, 24, 16]} />
+      <meshBasicMaterial color={SKY} wireframe transparent opacity={0.07} />
+    </mesh>
+  );
+}
+
+/** Glowing red delivery corridors radiating from the West Bengal hub. */
 function Routes() {
-  const hubVectors = useMemo(() => HUBS.map((h) => latLonToVector3(h.lat, h.lon, RADIUS)), []);
-  const arcs = useMemo(() => {
-    const result: THREE.Vector3[][] = [];
-    for (let i = 1; i < hubVectors.length; i++) {
-      result.push(greatCircleArc(hubVectors[0], hubVectors[i], RADIUS));
-    }
-    return result;
-  }, [hubVectors]);
+  const origin = useMemo(() => latLonToVector3(ORIGIN.lat, ORIGIN.lon, RADIUS), []);
+  const spokes = useMemo(() => SPOKES.map((s) => latLonToVector3(s.lat, s.lon, RADIUS)), []);
+  const arcs = useMemo(() => spokes.map((s) => arcBetween(origin, s, RADIUS)), [origin, spokes]);
 
   return (
     <group>
-      {arcs.map((arc, i) => (
-        <Line key={i} points={arc} color="#E30613" lineWidth={1.4} transparent opacity={0.55} />
+      {arcs.map((points, i) => (
+        <Line key={i} points={points} color={RED} lineWidth={1.6} transparent opacity={0.85} />
       ))}
-      {hubVectors.map((v, i) => (
+
+      {/* Destination hubs — blue */}
+      {spokes.map((v, i) => (
         <mesh key={i} position={v}>
-          <sphereGeometry args={[i === 0 ? 0.045 : 0.03, 12, 12]} />
-          <meshBasicMaterial color={i === 0 ? "#111111" : "#E30613"} />
+          <sphereGeometry args={[0.032, 12, 12]} />
+          <meshBasicMaterial color={BLUE} />
         </mesh>
       ))}
+
+      {/* Home hub — red core, pulsing white halo */}
+      <mesh position={origin}>
+        <sphereGeometry args={[0.05, 16, 16]} />
+        <meshBasicMaterial color={RED} />
+      </mesh>
+      <PulseRing position={origin} />
     </group>
   );
 }
 
-function OrbitingMarker() {
+function PulseRing({ position }: { position: THREE.Vector3 }) {
   const ref = useRef<THREE.Mesh>(null);
   useFrame(({ clock }) => {
-    const t = clock.getElapsedTime() * 0.35;
-    const radius = RADIUS + 0.55;
-    if (ref.current) {
-      ref.current.position.set(
-        Math.cos(t) * radius,
-        Math.sin(t * 0.6) * 0.6,
-        Math.sin(t) * radius
-      );
-    }
+    if (!ref.current) return;
+    const t = (clock.getElapsedTime() % 2.4) / 2.4;
+    const scale = 1 + t * 2.6;
+    ref.current.scale.setScalar(scale);
+    const mat = ref.current.material as THREE.MeshBasicMaterial;
+    mat.opacity = 0.5 * (1 - t);
+    ref.current.lookAt(0, 0, 0);
+  });
+  return (
+    <mesh ref={ref} position={position}>
+      <ringGeometry args={[0.05, 0.062, 32]} />
+      <meshBasicMaterial color={RED} transparent side={THREE.DoubleSide} depthWrite={false} />
+    </mesh>
+  );
+}
+
+/** A parcel in motion, orbiting just above the surface. */
+function OrbitingParcel() {
+  const ref = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime() * 0.32;
+    const r = RADIUS + 0.42;
+    if (!ref.current) return;
+    ref.current.position.set(Math.cos(t) * r, Math.sin(t * 0.7) * 0.75, Math.sin(t) * r);
+    ref.current.rotation.x += 0.01;
+    ref.current.rotation.y += 0.014;
   });
   return (
     <mesh ref={ref}>
-      <boxGeometry args={[0.09, 0.09, 0.16]} />
-      <meshStandardMaterial color="#E30613" emissive="#E30613" emissiveIntensity={1.4} />
+      <boxGeometry args={[0.1, 0.1, 0.1]} />
+      <meshStandardMaterial color={RED} emissive={RED} emissiveIntensity={0.8} roughness={0.4} />
+    </mesh>
+  );
+}
+
+/** Blue atmospheric halo, rendered on the inside faces so it rims the sphere. */
+function Atmosphere() {
+  return (
+    <mesh>
+      <sphereGeometry args={[RADIUS * 1.14, 48, 48]} />
+      <meshBasicMaterial
+        color={BLUE}
+        transparent
+        opacity={0.09}
+        side={THREE.BackSide}
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
     </mesh>
   );
 }
 
 function GlobeGroup() {
-  const groupRef = useRef<THREE.Group>(null);
+  const group = useRef<THREE.Group>(null);
   useFrame((_, delta) => {
-    if (groupRef.current) groupRef.current.rotation.y += delta * 0.08;
+    if (group.current) group.current.rotation.y += delta * 0.07;
   });
 
   return (
-    <group ref={groupRef}>
-      <Sphere args={[RADIUS - 0.02, 48, 48]}>
-        <meshBasicMaterial color="#FAFAFA" transparent opacity={0.75} />
-      </Sphere>
-      <DottedGlobe />
+    <group ref={group} rotation={[0.28, 0, 0.12]}>
+      {/* Solid navy body — occludes the far side so the globe reads as a sphere */}
+      <mesh>
+        <sphereGeometry args={[RADIUS, 64, 64]} />
+        <meshStandardMaterial color={INK} roughness={0.85} metalness={0.15} />
+      </mesh>
+      <Graticule />
+      <SurfaceDots />
       <Routes />
-      <OrbitingMarker />
+      <OrbitingParcel />
     </group>
   );
 }
@@ -132,9 +191,11 @@ function GlobeGroup() {
 export function Globe() {
   return (
     <>
-      <ambientLight intensity={0.6} />
-      <pointLight position={[6, 4, 6]} intensity={1} color="#FF4D5E" />
-      <pointLight position={[-6, -4, -4]} intensity={0.5} color="#ffffff" />
+      <ambientLight intensity={0.55} />
+      <directionalLight position={[5, 3, 5]} intensity={1.1} color="#ffffff" />
+      <pointLight position={[-5, -2, -3]} intensity={0.8} color={BLUE} />
+      <pointLight position={[4, -3, 2]} intensity={0.5} color={RED} />
+      <Atmosphere />
       <GlobeGroup />
     </>
   );

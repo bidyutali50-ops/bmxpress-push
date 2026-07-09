@@ -1,120 +1,160 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import { motion } from "framer-motion";
 import { ArrowRight, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Globe } from "@/components/three/Globe";
 import { Starfield } from "@/components/three/Starfield";
 import { heroStats } from "@/lib/data";
 import { useCounter } from "@/hooks/useCounter";
 
-const words = ["Hyperlocal Delivery", "Last-Mile Logistics", "Quick Commerce", "3PL Fulfilment", "Dedicated Fleet"];
+const capabilities = [
+  "Hyperlocal",
+  "Last-mile",
+  "Quick commerce",
+  "3PL fulfilment",
+  "Dedicated fleet",
+];
 
-function StatItem({ value, suffix, label, delay }: { value: number; suffix: string; label: string; delay: number }) {
-  const count = useCounter(value, { duration: 1800 });
+const ease = [0.16, 1, 0.3, 1] as const;
+
+function Stat({ value, suffix, label, delay }: { value: number; suffix: string; label: string; delay: number }) {
+  const count = useCounter(value, { duration: 1600 });
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.6 }}
-      className="glass rounded-2xl px-5 py-4 text-center"
+      transition={{ delay, duration: 0.6, ease }}
+      className="border-l border-border pl-4"
     >
-      <p className="font-display text-2xl font-semibold text-foreground sm:text-3xl">
+      <p className="font-display text-3xl font-semibold tabular-nums tracking-tight text-navy sm:text-4xl">
         {count}
-        {suffix}
+        <span className="text-primary">{suffix}</span>
       </p>
-      <p className="mt-1 text-[11px] uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+        {label}
+      </p>
     </motion.div>
   );
 }
 
 export function Hero() {
-  const [wordIndex, setWordIndex] = useState(0);
-
   return (
-    <section id="home" className="relative flex min-h-screen flex-col overflow-hidden pt-28">
-      <div className="pointer-events-none absolute inset-0 bg-grid-white bg-[size:56px_56px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,black,transparent)]" />
+    <section id="home" className="relative overflow-hidden pt-32">
+      <div className="pointer-events-none absolute inset-0 bg-grid-fine bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)]" />
       <div className="pointer-events-none absolute inset-0 mesh-bg" />
 
-      <div className="absolute inset-0 z-0">
-        <Canvas camera={{ position: [0, 0, 6.5], fov: 42 }} dpr={[1, 1.5]}>
-          <Suspense fallback={null}>
-            <Starfield />
-            <Globe />
-          </Suspense>
-        </Canvas>
-      </div>
+      <div className="container relative z-10">
+        <div className="grid items-center gap-8 pb-8 lg:grid-cols-[1.05fr_1fr] lg:gap-4">
+          {/* ---------- Type ---------- */}
+          <div className="max-w-xl">
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.7 }}
+              className="flex flex-wrap items-center gap-x-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground"
+            >
+              <span className="inline-block h-1.5 w-1.5 animate-pulse-glow rounded-full bg-primary" />
+              Murshidabad
+              <span className="text-primary">&rarr;</span>
+              Kolkata
+              <span className="text-border">/</span>
+              30 hubs
+              <span className="text-border">/</span>
+              24&times;7
+            </motion.p>
 
-      <div className="container relative z-10 flex flex-1 flex-col items-center justify-center py-20 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-        >
-          <Badge>India · West Bengal · 24x7 dispatch</Badge>
-        </motion.div>
+            <h1 className="font-display mt-6 text-[2.75rem] leading-[0.95] tracking-[-0.04em] sm:text-6xl lg:text-[4.25rem]">
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.05, ease }}
+                className="block font-light text-navy"
+              >
+                Delivering <span className="font-semibold text-primary">Speed.</span>
+              </motion.span>
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.18, ease }}
+                className="mt-1 block font-light text-navy"
+              >
+                Powered by <span className="font-semibold text-secondary">Technology.</span>
+              </motion.span>
+            </h1>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="font-display mt-6 max-w-4xl text-balance text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl"
-        >
-          Delivering the <span className="text-primary text-glow">Future</span> of Logistics
-        </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.32, ease }}
+              className="mt-7 max-w-md text-base leading-relaxed text-muted-foreground"
+            >
+              We move parcels across 200+ pincodes in West Bengal — dispatched from
+              30 hubs, carried by 500+ riders, and tracked end to end.
+            </motion.p>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.8 }}
-          className="mt-6 h-7 overflow-hidden"
-        >
+            <motion.ul
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.7, delay: 0.42 }}
+              className="mt-6 flex flex-wrap gap-x-4 gap-y-2 font-mono text-[11px] uppercase tracking-wider text-muted-foreground"
+            >
+              {capabilities.map((c, i) => (
+                <li key={c} className="flex items-center gap-4">
+                  {i > 0 && <span className="text-border">&middot;</span>}
+                  {c}
+                </li>
+              ))}
+            </motion.ul>
+
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.5, ease }}
+              className="mt-9 flex flex-col gap-3 sm:flex-row"
+            >
+              <Button size="lg" onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}>
+                Get Started <ArrowRight size={16} />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
+              >
+                <MessageCircle size={16} /> Contact Us
+              </Button>
+            </motion.div>
+          </div>
+
+          {/* ---------- Globe ---------- */}
           <motion.div
-            animate={{ y: `-${wordIndex * 1.75}rem` }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            onAnimationComplete={() => setWordIndex((i) => (i + 1) % words.length)}
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.2, delay: 0.2, ease }}
+            className="relative h-[340px] w-full sm:h-[440px] lg:h-[560px]"
           >
-            {words.map((w) => (
-              <p key={w} className="h-7 text-base font-medium text-muted-foreground sm:text-lg">
-                {w}
-              </p>
-            ))}
+            <div
+              className="pointer-events-none absolute left-1/2 top-1/2 h-[70%] w-[70%] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-70 blur-3xl"
+              style={{ background: "radial-gradient(circle, rgba(37,99,235,0.22), transparent 70%)" }}
+            />
+            <Canvas camera={{ position: [0, 0, 6.4], fov: 42 }} dpr={[1, 1.75]}>
+              <Suspense fallback={null}>
+                <Starfield count={420} />
+                <Globe />
+              </Suspense>
+            </Canvas>
           </motion.div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55, duration: 0.7 }}
-          className="mt-10 flex flex-col gap-4 sm:flex-row"
-        >
-          <Button size="lg" onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}>
-            Get Started <ArrowRight size={16} />
-          </Button>
-          <Button size="lg" variant="outline" onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}>
-            <MessageCircle size={16} /> Contact Us
-          </Button>
-        </motion.div>
-
-        <div className="mt-16 grid w-full max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4">
+        {/* ---------- Stats ---------- */}
+        <div className="grid grid-cols-2 gap-y-8 border-t border-border py-10 sm:grid-cols-4">
           {heroStats.map((s, i) => (
-            <StatItem key={s.label} value={s.value} suffix={s.suffix} label={s.label} delay={0.7 + i * 0.1} />
+            <Stat key={s.label} value={s.value} suffix={s.suffix} label={s.label} delay={0.6 + i * 0.08} />
           ))}
         </div>
       </div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.4 }}
-        className="relative z-10 mx-auto mb-10 flex flex-col items-center gap-2 text-muted-foreground"
-      >
-        <span className="text-[11px] uppercase tracking-widest">Scroll</span>
-        <span className="h-8 w-[1px] animate-pulse-glow bg-primary" />
-      </motion.div>
     </section>
   );
 }

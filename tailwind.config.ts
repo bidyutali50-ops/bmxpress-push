@@ -27,6 +27,14 @@ const config: Config = {
           DEFAULT: "#E30613",
           foreground: "#ffffff",
         },
+        secondary: {
+          DEFAULT: "#2563EB",
+          foreground: "#ffffff",
+        },
+        navy: {
+          DEFAULT: "#0E1730",
+          deep: "#080E1F",
+        },
         ink: {
           950: "#FAFAFA",
           900: "#FFFFFF",
@@ -43,6 +51,7 @@ const config: Config = {
       backgroundImage: {
         "grid-white": "linear-gradient(to right, rgba(10,10,10,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(10,10,10,0.06) 1px, transparent 1px)",
         "radial-fade": "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(227,6,19,0.18), transparent)",
+        "grid-fine": "linear-gradient(to right, rgba(14,23,48,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(14,23,48,0.05) 1px, transparent 1px)",
       },
       keyframes: {
         marquee: {
