@@ -16,7 +16,7 @@ export function TrustedBy() {
       </div>
 
       <div className="marquee-wrap relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-        <ul className="marquee-track gap-5 py-3">
+        <ul className="marquee-track py-3">
           {doubled.map((client, i) => {
             const isDuplicate = i >= trustedBy.length;
             return (
@@ -25,7 +25,7 @@ export function TrustedBy() {
                 aria-hidden={isDuplicate || undefined}
                 data-cursor-hover
                 tabIndex={isDuplicate ? -1 : 0}
-                className="group flex h-[72px] w-44 shrink-0 items-center justify-center rounded-2xl border border-border bg-card/70 backdrop-blur-md transition-all duration-500 ease-out will-change-transform hover:-translate-y-1.5 hover:border-primary/40 hover:shadow-[0_12px_36px_-10px_rgba(227,6,19,0.45)] hover:[transform:perspective(700px)_rotateX(7deg)_translateY(-6px)_scale(1.04)] focus-visible:border-primary/40"
+                className="group mr-5 flex h-[72px] w-44 shrink-0 items-center justify-center rounded-2xl border border-border bg-card/70 backdrop-blur-md transition-all duration-500 ease-out will-change-transform hover:-translate-y-1.5 hover:border-primary/40 hover:shadow-[0_12px_36px_-10px_rgba(227,6,19,0.45)] hover:[transform:perspective(700px)_rotateX(7deg)_translateY(-6px)_scale(1.04)] focus-visible:border-primary/40"
               >
                 {client.src ? (
                   <Image

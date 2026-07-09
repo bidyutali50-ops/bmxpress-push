@@ -141,11 +141,20 @@ body {
   .cursor-dot, .cursor-ring { display: none; }
 }
 
-/* Marquee track duplicate helper */
+/* Marquee track duplicate helper.
+   The keyframes are declared here rather than in tailwind.config because
+   Tailwind only emits theme keyframes when a matching `animate-*` utility
+   is used in markup — and this animation is applied via a plain class. */
+@keyframes marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
 .marquee-track {
   display: flex;
   width: max-content;
   animation: marquee 45s linear infinite;
+  will-change: transform;
 }
 
 /* Pause the marquee while the user is inspecting a logo */
@@ -161,6 +170,13 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* The blanket rule above would snap the marquee to its end position.
+     Stop it cleanly at the start instead. */
+  .marquee-track {
+    animation: none !important;
+    transform: none !important;
   }
 }
 
