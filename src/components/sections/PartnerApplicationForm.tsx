@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useRef, useState, type FormEvent } from "react";
+import { gsap, useGSAP } from "@/lib/gsap";
 import { CheckCircle2, Loader2, Send, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ async function uploadFile(file: File, applicationId: string, kind: string) {
 }
 
 export function PartnerApplicationForm() {
+  const root = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const [vehicle, setVehicle] = useState("BIKE");
@@ -103,16 +104,19 @@ export function PartnerApplicationForm() {
     }
   };
 
+  useGSAP(
+    () => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      gsap.from(".js-swap", { opacity: 0, y: 10, duration: 0.5 });
+    },
+    { scope: root, dependencies: [status === "success"], revertOnUpdate: true }
+  );
+
   return (
-    <div className="glass mx-auto max-w-2xl rounded-3xl p-6 sm:p-10">
-      <AnimatePresence mode="wait">
+    <div ref={root} className="mx-auto max-w-2xl rounded-3xl border border-border bg-white p-6 shadow-[0_24px_60px_-32px_rgba(14,23,48,0.28)] sm:p-10">
+      <>
         {status === "success" ? (
-          <motion.div
-            key="success"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center py-10 text-center"
-          >
+          <div className="js-swap flex flex-col items-center py-10 text-center">
             <CheckCircle2 className="text-primary" size={48} />
             <p className="font-display mt-4 text-xl font-semibold">Application received</p>
             <p className="mt-2 max-w-xs text-sm text-muted-foreground">
@@ -121,16 +125,9 @@ export function PartnerApplicationForm() {
             <Button variant="outline" size="sm" className="mt-6" onClick={() => setStatus("idle")}>
               Submit another
             </Button>
-          </motion.div>
+          </div>
         ) : (
-          <motion.form
-            key="form"
-            onSubmit={onSubmit}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="grid gap-5 sm:grid-cols-2"
-          >
+          <form onSubmit={onSubmit} className="js-swap grid gap-5 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <Label htmlFor="full_name">Full Name</Label>
               <Input id="full_name" name="full_name" required placeholder="Your full name" />
@@ -263,9 +260,9 @@ export function PartnerApplicationForm() {
                 )}
               </Button>
             </div>
-          </motion.form>
+          </form>
         )}
-      </AnimatePresence>
+      </>
     </div>
   );
 }

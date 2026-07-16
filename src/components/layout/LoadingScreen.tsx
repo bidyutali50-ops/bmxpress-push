@@ -1,53 +1,51 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useRef, useState } from "react";
+import { gsap, useGSAP } from "@/lib/gsap";
 
 export function LoadingScreen() {
-  const [visible, setVisible] = useState(true);
+  const root = useRef<HTMLDivElement>(null);
+  const [done, setDone] = useState(false);
 
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    const timer = setTimeout(() => {
-      setVisible(false);
-      document.body.style.overflow = "";
-    }, 1900);
-    return () => clearTimeout(timer);
-  }, []);
+  useGSAP(
+    () => {
+      // Reduced motion: don't hold the page hostage behind an animation.
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        setDone(true);
+        return;
+      }
+
+      document.body.style.overflow = "hidden";
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          document.body.style.overflow = "";
+          setDone(true);
+        },
+      });
+
+      tl.from(".js-load-mark", { opacity: 0, y: 12, duration: 0.6 })
+        .fromTo(".js-load-bar", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "power2.inOut" }, "-=0.2")
+        .to(".js-load-mark", { opacity: 0, y: -10, duration: 0.4 }, "+=0.1")
+        .to(root.current, { autoAlpha: 0, duration: 0.5 }, "-=0.2");
+
+      return () => {
+        document.body.style.overflow = "";
+      };
+    },
+    { scope: root }
+  );
+
+  if (done) return null;
 
   return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-ink-950"
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.6, ease: "easeInOut" } }}
-        >
-          <div className="relative flex items-center gap-3">
-            <motion.span
-              initial={{ letterSpacing: "0.4em", opacity: 0 }}
-              animate={{ letterSpacing: "0.02em", opacity: 1 }}
-              transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
-              className="font-display text-3xl font-semibold text-foreground"
-            >
-              BM <span className="text-primary">Xpress</span>
-            </motion.span>
-          </div>
-          <motion.div
-            className="mt-6 h-[2px] w-40 overflow-hidden rounded-full bg-foreground/[0.04]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            <motion.div
-              className="h-full w-full bg-primary"
-              initial={{ x: "-100%" }}
-              animate={{ x: "0%" }}
-              transition={{ duration: 1.3, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            />
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div ref={root} className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white">
+      <p className="js-load-mark font-display text-2xl font-semibold tracking-tight text-navy">
+        BM <span className="text-primary">Xpress</span>
+      </p>
+      <div className="mt-5 h-px w-40 overflow-hidden bg-border">
+        <div className="js-load-bar h-full w-full origin-left bg-primary" />
+      </div>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useRef, useState, type FormEvent } from "react";
+import { gsap, useGSAP } from "@/lib/gsap";
 import {
   CheckCircle2, Circle, Loader2, MapPin, Package, Phone, RefreshCw, Search, Truck, User, Warehouse,
 } from "lucide-react";
@@ -36,6 +36,7 @@ function reachedIndexFor(shipment: TrackedShipment) {
 }
 
 export function TrackingSearch() {
+  const root = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [shipment, setShipment] = useState<TrackedShipment | null>(null);
   const [loading, setLoading] = useState(false);
@@ -59,8 +60,18 @@ export function TrackingSearch() {
   const isRTO = shipment?.status ? RTO_STATUSES.includes(shipment.status) : false;
   const activeIndex = shipment?.found ? reachedIndexFor(shipment) : 0;
 
+  // Fires each time a search resolves, so every result animates in.
+  useGSAP(
+    () => {
+      if (!searched || loading) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      gsap.from(".js-result", { opacity: 0, y: 14, duration: 0.5 });
+    },
+    { scope: root, dependencies: [searched, loading, shipment?.tracking_number], revertOnUpdate: true }
+  );
+
   return (
-    <div className="mx-auto max-w-3xl">
+    <div ref={root} className="mx-auto max-w-3xl">
       <form onSubmit={onSubmit} className="glass flex flex-col gap-3 rounded-2xl p-3 sm:flex-row">
         <div className="flex flex-1 items-center gap-2 rounded-xl border border-border bg-background/50 px-4">
           <Search size={16} className="shrink-0 text-muted-foreground" />
@@ -99,16 +110,9 @@ export function TrackingSearch() {
         ))}
       </div>
 
-      <AnimatePresence mode="wait">
+      <>
         {searched && !loading && (
-          <motion.div
-            key={shipment?.found ? shipment.tracking_number : "not-found"}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="mt-8"
-          >
+          <div className="js-result mt-8">
             {!shipment?.found ? (
               <div className="glass rounded-2xl p-8 text-center">
                 <Package className="mx-auto text-muted-foreground" size={32} />
@@ -147,13 +151,13 @@ export function TrackingSearch() {
                         return (
                           <li key={step.status} className="flex gap-3">
                             <div className="flex flex-col items-center">
-                              <motion.div
-                                initial={false}
-                                animate={{ scale: done ? 1 : 0.9 }}
-                                className={done ? "text-primary" : "text-muted-foreground"}
+                              <div
+                                className={`transition-transform duration-300 ${
+                                  done ? "scale-100 text-primary" : "scale-90 text-muted-foreground"
+                                }`}
                               >
                                 {done ? <CheckCircle2 size={20} /> : <Circle size={20} />}
-                              </motion.div>
+                              </div>
                               {!isLast && (
                                 <span className={`my-1 h-8 w-[2px] ${i < activeIndex ? "bg-primary" : "bg-border"}`} />
                               )}
@@ -204,9 +208,9 @@ export function TrackingSearch() {
                 </div>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </>
     </div>
   );
 }

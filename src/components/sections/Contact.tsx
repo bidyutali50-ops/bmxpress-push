@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useRef } from "react";
+import { gsap, useGSAP } from "@/lib/gsap";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ type Status = "idle" | "loading" | "success" | "error";
 const serviceOptions = servicesContent.map((s) => s.title);
 
 export function Contact() {
+  const root = useRef<HTMLElement>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -52,12 +54,39 @@ export function Contact() {
     e.currentTarget.reset();
   };
 
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const tl = gsap.timeline({
+          scrollTrigger: { trigger: root.current, start: "top 70%", once: true },
+        });
+        tl.from(".js-contact-head > *", { opacity: 0, y: 20, stagger: 0.08 })
+          .from(".js-contact-panel", { opacity: 0, y: 26 }, "-=0.4");
+      });
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        gsap.set([".js-contact-head > *", ".js-contact-panel"], { opacity: 1, y: 0 });
+      });
+      return () => mm.revert();
+    },
+    { scope: root }
+  );
+
+  // Animates whichever pane is showing when the form flips to its success state.
+  useGSAP(
+    () => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      gsap.from(".js-swap", { opacity: 0, y: 10, duration: 0.5 });
+    },
+    { scope: root, dependencies: [status === "success"], revertOnUpdate: true }
+  );
+
   return (
-    <section id="contact" className="relative py-28">
+    <section ref={root} id="contact" className="relative py-28">
       <div className="pointer-events-none absolute inset-0 mesh-bg opacity-50" />
       <div className="container relative">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-widest text-primary">Get in touch</p>
+        <div className="js-contact-head mx-auto max-w-2xl text-center">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Get in touch</p>
           <h2 className="font-display mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
             Let&apos;s move something
           </h2>
@@ -66,21 +95,10 @@ export function Contact() {
           </p>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7 }}
-          className="glass mx-auto mt-14 max-w-2xl rounded-3xl p-6 sm:p-10"
-        >
-          <AnimatePresence mode="wait">
+        <div className="js-contact-panel mx-auto mt-14 max-w-2xl rounded-3xl border border-border bg-white p-6 shadow-[0_24px_60px_-32px_rgba(14,23,48,0.28)] sm:p-10">
+          <>
             {status === "success" ? (
-              <motion.div
-                key="success"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center py-10 text-center"
-              >
+              <div className="js-swap flex flex-col items-center py-10 text-center">
                 <CheckCircle2 className="text-primary" size={48} />
                 <p className="font-display mt-4 text-xl font-semibold">Message sent</p>
                 <p className="mt-2 max-w-xs text-sm text-muted-foreground">
@@ -89,16 +107,9 @@ export function Contact() {
                 <Button variant="outline" size="sm" className="mt-6" onClick={() => setStatus("idle")}>
                   Send another
                 </Button>
-              </motion.div>
+              </div>
             ) : (
-              <motion.form
-                key="form"
-                onSubmit={onSubmit}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="grid gap-5 sm:grid-cols-2"
-              >
+              <form onSubmit={onSubmit} className="js-swap grid gap-5 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="name">Name</Label>
                   <Input id="name" name="name" required placeholder="Your full name" />
@@ -155,10 +166,10 @@ export function Contact() {
                     )}
                   </Button>
                 </div>
-              </motion.form>
+              </form>
             )}
-          </AnimatePresence>
-        </motion.div>
+          </>
+        </div>
       </div>
     </section>
   );
