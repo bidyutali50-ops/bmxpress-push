@@ -3,9 +3,10 @@
 import { useRef, useState, type FormEvent } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import {
-  CheckCircle2, Circle, Loader2, MapPin, Package, Phone, RefreshCw, Search, Truck, User, Warehouse,
+  CheckCircle2, Circle, Info, Loader2, MapPin, MessageCircle, Package, Phone, RefreshCw, Search, Truck, User, Warehouse,
 } from "lucide-react";
 import { findDemoShipment, DEMO_TRACKING_NUMBERS, type TrackedShipment } from "@/lib/demo-data";
+import { siteConfig } from "@/lib/data";
 
 const TIMELINE_STEPS = [
   { status: "CREATED", label: "Order Confirmed" },
@@ -92,6 +93,20 @@ export function TrackingSearch() {
         </button>
       </form>
 
+      <div className="mt-5 flex items-start gap-3 rounded-xl border border-border bg-[#FAFBFD] p-4">
+        <Info size={15} className="mt-0.5 shrink-0 text-secondary" />
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          <span className="font-medium text-navy">This is a preview.</span> Customer-facing
+          tracking is rolling out with our client integrations — the sample consignments below
+          show what you and your customers will see. Tracking a live BM&nbsp;Xpress consignment
+          today?{" "}
+          <a href={siteConfig.social.whatsapp} target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline underline-offset-2">
+            Message our ops team
+          </a>{" "}
+          and we&apos;ll pull the status for you.
+        </p>
+      </div>
+
       <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
         <span>Try a sample:</span>
         {DEMO_TRACKING_NUMBERS.map((tn) => (
@@ -114,12 +129,32 @@ export function TrackingSearch() {
         {searched && !loading && (
           <div className="js-result mt-8">
             {!shipment?.found ? (
-              <div className="glass rounded-2xl p-8 text-center">
+              <div className="rounded-2xl border border-border bg-white p-8 text-center shadow-[0_20px_50px_-30px_rgba(14,23,48,0.25)]">
                 <Package className="mx-auto text-muted-foreground" size={32} />
-                <p className="font-display mt-4 text-lg font-semibold">No shipment found</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Double-check the tracking ID or phone number and try again.
+                <p className="font-display mt-4 text-lg font-semibold text-navy">
+                  Not in the preview
                 </p>
+                <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+                  This page only resolves the sample consignments above. If you&apos;re tracking a
+                  real BM&nbsp;Xpress delivery, our ops team can give you the live status right now
+                  — telling you to &ldquo;try again&rdquo; here would just waste your time.
+                </p>
+                <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
+                  <a
+                    href={siteConfig.social.whatsapp}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-white transition-transform hover:-translate-y-0.5"
+                  >
+                    <MessageCircle size={14} /> WhatsApp ops
+                  </a>
+                  <a
+                    href={`tel:+91${siteConfig.phone}`}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border px-5 text-sm font-medium text-navy transition-colors hover:border-navy/30"
+                  >
+                    <Phone size={14} /> {siteConfig.phoneDisplay}
+                  </a>
+                </div>
               </div>
             ) : (
               <div className="glass overflow-hidden rounded-2xl">
