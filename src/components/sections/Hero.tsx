@@ -25,24 +25,50 @@ export function Hero() {
 
       let split: SplitText | undefined;
 
-      // Hidden in the layout effect, before first paint, so the headline can't
-      // render in place and then jump once SplitText resolves. With JS off it
-      // never hides — the copy still renders for crawlers.
+      // Hidden before first paint so the headline can't render in place and
+      // then jump once SplitText resolves. JS off means it never hides, so the
+      // copy still renders for crawlers.
       gsap.set(".js-headline", { autoAlpha: 0 });
 
-      document.fonts.ready.then(() => {
-        split = new SplitText(".js-headline", { type: "lines", mask: "lines" });
-        gsap.set(".js-headline", { autoAlpha: 1 });
+      const reveal = () => gsap.set(".js-headline", { autoAlpha: 1 });
+
+      // Two independent failure modes could otherwise strand the headline
+      // invisible forever: fonts.ready never settling, or SplitText throwing.
+      // Race a timeout for the first; try/catch the second. The headline is the
+      // most important element on the page — it must never depend on an
+      // animation succeeding.
+      const fontsReady = Promise.race([
+        document.fonts.ready,
+        new Promise((resolve) => setTimeout(resolve, 1500)),
+      ]);
+
+      fontsReady.then(() => {
+        let lines: Element[] | null = null;
+        try {
+          split = new SplitText(".js-headline", { type: "lines", mask: "lines" });
+          lines = split.lines;
+        } catch {
+          // Plugin unavailable or split failed — fall back to a plain reveal.
+          lines = null;
+        }
+
+        reveal();
 
         const tl = gsap.timeline({ defaults: { ease: EASE.out } });
-        tl.from(".js-eyebrow", { opacity: 0, y: 10, duration: 0.6 })
-          .from(split.lines, { yPercent: 110, duration: 1.05, stagger: 0.11 }, "-=0.3")
-          .from(".js-sub", { opacity: 0, y: 14, duration: 0.7 }, "-=0.65")
+        tl.from(".js-eyebrow", { opacity: 0, y: 10, duration: 0.6 });
+
+        if (lines && lines.length) {
+          tl.from(lines, { yPercent: 110, duration: 1.05, stagger: 0.11 }, "-=0.3");
+        } else {
+          tl.from(".js-headline", { opacity: 0, y: 20, duration: 0.9 }, "-=0.3");
+        }
+
+        tl.from(".js-sub", { opacity: 0, y: 14, duration: 0.7 }, "-=0.65")
           .from(".js-cap", { opacity: 0, y: 8, stagger: 0.05, duration: 0.5 }, "-=0.45")
           .from(".js-cta", { opacity: 0, y: 12, stagger: 0.09, duration: 0.6 }, "-=0.35")
           .from(".js-globe", { opacity: 0, scale: 0.92, duration: 1.5, ease: EASE.expo }, 0.2)
           .from(".js-scroll", { opacity: 0, duration: 0.6 }, "-=0.4");
-      });
+      }).catch(reveal);
 
       // The indicator keeps breathing after the entrance settles.
       gsap.to(".js-scroll-dot", {
