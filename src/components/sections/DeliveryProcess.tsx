@@ -4,22 +4,22 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { CheckCircle2, MapPin, Package, PackageCheck, Store, Truck } from "lucide-react";
+import { CheckCircle2, ClipboardList, MapPin, Package, Truck, Warehouse } from "lucide-react";
+import { processSteps } from "@/lib/data";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-const RED = "#E30613";
+const RED = "#E53935";
 const BLUE = "#2563EB";
 const NAVY = "#0E1730";
 
-const steps = [
-  { icon: Store, label: "Create Shipment", description: "An order arrives — from your checkout, your API, or entered at the hub." },
-  { icon: Package, label: "Assign Rider", description: "The nearest available rider is matched from the hub queue in seconds." },
-  { icon: MapPin, label: "Pickup", description: "The rider collects the parcel and the route opens." },
-  { icon: PackageCheck, label: "Transit", description: "Live location streams to your dashboard the whole way." },
-  { icon: Truck, label: "Delivery", description: "The rider reaches the drop and hands it over." },
-  { icon: CheckCircle2, label: "Proof of Delivery", description: "Signature or photo captured. The order closes out." },
-];
+const icons = [ClipboardList, MapPin, Warehouse, Truck, Package, CheckCircle2];
+
+const steps = processSteps.map((step, i) => ({
+  icon: icons[i],
+  label: step.label,
+  description: step.description,
+}));
 
 const LAST = steps.length - 1;
 const accentFor = (i: number) => (i === LAST ? RED : BLUE);

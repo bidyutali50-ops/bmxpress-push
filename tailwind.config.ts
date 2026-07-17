@@ -24,7 +24,7 @@ const config: Config = {
         muted: "hsl(var(--muted))",
         "muted-foreground": "hsl(var(--muted-foreground))",
         primary: {
-          DEFAULT: "#E30613",
+          DEFAULT: "#E53935",
           foreground: "#ffffff",
         },
         secondary: {
@@ -50,7 +50,7 @@ const config: Config = {
       },
       backgroundImage: {
         "grid-white": "linear-gradient(to right, rgba(10,10,10,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(10,10,10,0.06) 1px, transparent 1px)",
-        "radial-fade": "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(227,6,19,0.18), transparent)",
+        "radial-fade": "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(229,57,53,0.18), transparent)",
         "grid-fine": "linear-gradient(to right, rgba(14,23,48,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(14,23,48,0.05) 1px, transparent 1px)",
       },
       keyframes: {

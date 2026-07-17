@@ -43,7 +43,7 @@ body {
 }
 
 ::selection {
-  background: #E30613;
+  background: #E53935;
   color: #ffffff;
 }
 
@@ -90,14 +90,14 @@ body {
 }
 
 .text-glow {
-  text-shadow: 0 0 34px rgba(227,6,19,0.28);
+  text-shadow: 0 0 34px rgba(229,57,53,0.28);
 }
 
 /* Animated gradient mesh background — soft red glow wash on white */
 .mesh-bg {
   background-image:
     radial-gradient(at 18% 8%, rgba(37,99,235,0.13) 0px, transparent 45%),
-    radial-gradient(at 82% 4%, rgba(227,6,19,0.10) 0px, transparent 45%),
+    radial-gradient(at 82% 4%, rgba(229,57,53,0.10) 0px, transparent 45%),
     radial-gradient(at 50% 100%, rgba(14,23,48,0.06) 0px, transparent 55%);
 }
 
@@ -120,7 +120,7 @@ body {
   top: 0; left: 0;
   width: 8px; height: 8px;
   border-radius: 999px;
-  background: #E30613;
+  background: #E53935;
   pointer-events: none;
   z-index: 9999;
   transform: translate(-50%, -50%);
@@ -130,7 +130,7 @@ body {
   top: 0; left: 0;
   width: 36px; height: 36px;
   border-radius: 999px;
-  border: 1px solid rgba(227,6,19,0.45);
+  border: 1px solid rgba(229,57,53,0.45);
   pointer-events: none;
   z-index: 9998;
   transform: translate(-50%, -50%);
@@ -182,6 +182,6 @@ body {
 
 /* Focus visibility */
 :focus-visible {
-  outline: 2px solid #E30613;
+  outline: 2px solid #E53935;
   outline-offset: 3px;
 }

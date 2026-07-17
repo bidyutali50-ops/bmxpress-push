@@ -78,7 +78,7 @@ export function Coverage() {
                     key={`${from}-${to}`}
                     className="js-route"
                     x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-                    stroke="#E30613"
+                    stroke="#E53935"
                     strokeWidth="0.4"
                     strokeOpacity="0.4"
                   />
@@ -96,13 +96,13 @@ export function Coverage() {
                     cx={hub.x}
                     cy={hub.y}
                     r={hub.tier === "primary" ? 2.6 : 1.8}
-                    fill={hub.tier === "primary" ? "#E30613" : "#2563EB"}
+                    fill={hub.tier === "primary" ? "#E53935" : "#2563EB"}
                     style={{ transition: "r 0.2s ease" }}
                   />
                   {hub.tier === "primary" && (
                     <circle
                       cx={hub.x} cy={hub.y} r="4.5"
-                      fill="none" stroke="#E30613" strokeWidth="0.3" opacity="0.5"
+                      fill="none" stroke="#E53935" strokeWidth="0.3" opacity="0.5"
                       className="animate-pulse-glow"
                     />
                   )}

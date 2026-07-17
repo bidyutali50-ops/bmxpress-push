@@ -8,7 +8,7 @@ import * as THREE from "three";
 const RADIUS = 2.2;
 
 const INK = "#0E1730";      // navy sphere body
-const RED = "#E30613";      // delivery routes
+const RED = "#E53935";      // delivery routes
 const BLUE = "#2563EB";     // hub nodes
 const SKY = "#7DA6FF";      // surface dots / graticule
 

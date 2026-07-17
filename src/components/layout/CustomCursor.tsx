@@ -29,7 +29,7 @@ export function CustomCursor() {
       if (ringRef.current) {
         ringRef.current.style.width = isInteractive ? "56px" : "36px";
         ringRef.current.style.height = isInteractive ? "56px" : "36px";
-        ringRef.current.style.background = isInteractive ? "rgba(227,6,19,0.12)" : "transparent";
+        ringRef.current.style.background = isInteractive ? "rgba(229,57,53,0.12)" : "transparent";
       }
     };
 

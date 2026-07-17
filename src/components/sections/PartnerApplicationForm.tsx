@@ -238,7 +238,7 @@ export function PartnerApplicationForm() {
                 type="checkbox"
                 checked={termsAccepted}
                 onChange={(e) => setTermsAccepted(e.target.checked)}
-                className="mt-0.5 h-4 w-4 accent-[#E30613]"
+                className="mt-0.5 h-4 w-4 accent-[#E53935]"
               />
               I agree to the <a href="/terms" className="text-primary underline">Terms of Service</a> and{" "}
               <a href="/privacy" className="text-primary underline">Privacy Policy</a>, and confirm the

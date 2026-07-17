@@ -110,9 +110,9 @@ export function LiveTracking() {
 
             <svg viewBox="0 0 600 300" className="relative mt-4 h-[260px] w-full">
               <path d={PATH} fill="none" stroke="rgba(14,23,48,0.1)" strokeWidth="3" />
-              <path className="js-route-path" d={PATH} fill="none" stroke="#E30613" strokeWidth="3" strokeLinecap="round" />
+              <path className="js-route-path" d={PATH} fill="none" stroke="#E53935" strokeWidth="3" strokeLinecap="round" />
               <circle cx="40" cy="200" r="6" fill="#0E1730" />
-              <circle cx="560" cy="160" r="6" fill="#E30613" />
+              <circle cx="560" cy="160" r="6" fill="#E53935" />
               <g className="js-rider">
                 <circle r="13" fill="#2563EB" opacity="0.2" />
                 <circle r="7" fill="#2563EB" />
